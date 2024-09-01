@@ -1,0 +1,18 @@
+import { IsEmail, IsNotEmpty, IsString, Max, Min } from "class-validator";
+
+
+export class UserDto {
+    @IsString()
+    @Min(1)
+    username: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @Min(7)
+    @Max(50)
+    password: string;
+
+    @IsString()
+    @IsEmail()
+    email: string;
+}
