@@ -19,11 +19,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
   }
 
   handleConnection(client: any, ...args: any[]) {
-    this.server.emit("user-join", `User ${client.id} joined chatroom`)
+    client.broadcast.emit("user-join", `User ${client.id} joined chatroom`)
   }
 
   handleDisconnect(client: any) {
-    this.server.emit("user-left", `User ${client.id} left chatroom`)
+    client.broadcast.emit("user-left", `User ${client.id} left chatroom`)
   }
 
 
