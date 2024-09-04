@@ -16,3 +16,19 @@ export class UserDto {
     @IsEmail()
     email: string;
 }
+
+export class LogInUserDto {
+    @IsString()
+    @IsNotEmpty()
+    @Min(7)
+    @Max(50)
+    password: string;
+
+    @IsString()
+    @IsEmail()
+    email: string;
+}
+
+export class JWTUserDto {
+    sub: string;
+}
