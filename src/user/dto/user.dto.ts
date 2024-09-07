@@ -1,5 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString, Max, Min } from "class-validator";
-
+import { Color, Prisma } from "@prisma/client";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, Max, Min } from "class-validator";
 
 export class UserDto {
     @IsString()
@@ -15,6 +15,15 @@ export class UserDto {
     @IsString()
     @IsEmail()
     email: string;
+
+    @IsOptional()
+    @IsString()
+    @IsUrl()
+    picLink?: string;
+
+    @IsOptional()
+    @IsEnum(Color)
+    picColor?: Color;
 }
 
 export class LogInUserDto {

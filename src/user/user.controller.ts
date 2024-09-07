@@ -13,7 +13,6 @@ export class UserController {
   @Post("signup")
   async auth(
     @Body() dto: UserDto,
-    @Req() req: Request,
     @Res({ passthrough: true }) response: Response
   ) {
 
@@ -36,9 +35,6 @@ export class UserController {
     @GetUserJWTId() user: JWTUserDto,
     @Res({ passthrough: true }) response: Response
   ) {
-
-    console.log(response)
-
     return await this.userService.refreshToken(user.sub, response);
   }
 

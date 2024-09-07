@@ -106,14 +106,21 @@ export class UserService {
             let user = await this.db.user.findUnique({
                where: {
                 email: data.email,
+               },
+               select: {
+                    ...selectUser,
+                    password: true
                }
             })
             
             if (user) {
                 if (await bcrypt.compare(data.password, user.password)) {
-                    return await this.jwtTokensAppend({}, user.id, response);
+                    delete user.password;
+
+                    return await this.jwtTokensAppend({user}, user.id, response);
                 }                 
             } 
+
 
             throw new ForbiddenException("Неверные данные")
         } catch (error) {
