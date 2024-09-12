@@ -6,11 +6,20 @@ import { DatabaseModule } from './database/database.module';
 import { UserModule } from './user/user.module';
 import { ConfigGlobalModule } from './config/config.module';
 import { JwtGlobalModule } from './jwt/jwt.module';
+import { FilesModule } from './files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'path';
+
 
 @Module({
   controllers: [AppController],
   providers: [AppService, ChatGateway],
-  imports: [DatabaseModule, UserModule, ConfigGlobalModule, JwtGlobalModule],
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, '..', "..", "uploads"),
+      serveRoot: "/static"
+    }),
+    DatabaseModule, UserModule, ConfigGlobalModule, JwtGlobalModule, FilesModule],
 
 })
 export class AppModule {}

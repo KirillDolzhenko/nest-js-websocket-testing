@@ -19,7 +19,7 @@ export class UserDto {
     @IsOptional()
     @IsString()
     @IsUrl()
-    picLink?: string;
+    picUrl?: string;
 
     @IsOptional()
     @IsEnum(Color)
@@ -40,4 +40,24 @@ export class LogInUserDto {
 
 export class JWTUserDto {
     sub: string;
+}
+
+
+export class SettingsUserDto {
+    @IsString()
+    @Min(1)
+    username: string;
+
+    @IsString()
+    @IsEmail()
+    email: string;
+
+    @IsOptional()
+    @IsString()
+    @IsUrl()
+    picUrl?: string;
+
+    // @IsOptional()
+    // @IsEnum(Color)
+    // picColor?: Color;
 }

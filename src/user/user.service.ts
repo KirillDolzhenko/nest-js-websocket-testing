@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { LogInUserDto, UserDto } from './dto/user.dto';
+import { JWTUserDto, LogInUserDto, SettingsUserDto, UserDto } from './dto/user.dto';
 import * as bcrypt from "bcrypt";
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -10,7 +10,9 @@ import { NotFoundError } from 'rxjs';
 let selectUser = {
     id: true,
     username: true,
-    email: true
+    email: true,
+    picColor: true,
+    picUrl: true
 };
 
 @Injectable()
@@ -28,7 +30,7 @@ export class UserService {
             sub: id
         }, {
             secret,
-            expiresIn: "120s"
+            expiresIn: "5min"
         })
     }
 
@@ -71,10 +73,17 @@ export class UserService {
         }
     }
 
+    async clearRefreshToken (response: Response) {
+        response.cookie("refresh_token", "", {
+         httpOnly: true, 
+         secure: true,
+         maxAge: 1
+        })
+    }
+
     async createUser(data: UserDto, response: Response) { 
         try {
             const passwordHash = await bcrypt.hash(data.password, 10);
-
 
             let userCurrent = await this.db.user.findUnique({
                 where: {
@@ -121,6 +130,31 @@ export class UserService {
                 }                 
             } 
 
+
+            throw new ForbiddenException("Неверные данные")
+        } catch (error) {
+            throw error            
+        }
+    }
+
+    
+    async logOut(id: string, response: Response) {
+        try {
+            let user = await this.db.user.findUnique({
+               where: {
+                id,
+               }
+            })
+            
+            if (user) {
+                await this.clearRefreshToken(response);
+
+                return {
+                    data: {
+                        success: true
+                    }
+                };          
+            } 
 
             throw new ForbiddenException("Неверные данные")
         } catch (error) {
@@ -189,6 +223,79 @@ export class UserService {
              
         } catch (error) {
             
+        }
+    }
+
+    async patchInfo(data: SettingsUserDto, id: string) {
+        try {
+            let user = await this.db.user.findUnique({
+                where: {
+                    id
+                }
+            })
+
+            console.log(data)
+
+            if (user) {
+                if (user.id == id) {
+                    let userUpdated = await this.db.user.update({
+                        where: {
+                            id
+                        },
+                        data,
+                        select: selectUser
+                    })
+
+                
+                    console.log(userUpdated)
+                
+                    return {
+                        data: {
+                            user: userUpdated
+                        }
+                    }
+                } else {
+                    throw new ForbiddenException("Вы не можете редактировать чужой профиль")
+                }
+            } else {
+                throw new NotFoundError("Пользователь не найден")
+            }
+        } catch (error) {
+            throw error
+        }
+    }
+
+    async removeProfilePic(id: string) {
+        try {
+            let user = await this.db.user.findUnique({
+                where: {
+                    id
+                }
+            })
+
+            if (user) {
+                let userUpdated = await this.db.user.update({
+                    where: {
+                        id
+                    },
+                    data: {
+                        picUrl: ""
+                    },
+                    select: selectUser
+                })
+            
+                console.log(userUpdated)
+            
+                return {
+                    data: {
+                        user: userUpdated
+                    }
+                }
+            } else {
+                throw new NotFoundError("Пользователь не найден")
+            }
+        } catch (error) {
+            throw error
         }
     }
 }
