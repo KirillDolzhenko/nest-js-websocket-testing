@@ -15,6 +15,12 @@ let selectUser = {
     picUrl: true
 };
 
+export function ObjectId(id: string) {
+    return {
+        $oid: id
+    }
+}
+
 @Injectable()
 export class UserService {
     constructor(
@@ -30,7 +36,7 @@ export class UserService {
             sub: id
         }, {
             secret,
-            expiresIn: "5min"
+            expiresIn: "10min"
         })
     }
 
@@ -297,5 +303,56 @@ export class UserService {
         } catch (error) {
             throw error
         }
+    }
+
+    async searchUsers(id: string, query: string) {
+        try {
+            let users = await this.db.user.aggregateRaw({
+                pipeline: [{
+                    $match: {
+                        username: {
+                            $regex: `.?${query}.?`,
+                            $options: "ui"
+                        },
+                        
+                    } 
+                },{
+                    $match: {
+                        _id: {
+                            $ne: ObjectId(id),
+                        },
+                    } 
+                },
+                    { 
+                        $project: {
+                            _id: false,
+                            id: {
+                                $toString: "$_id"
+                            },
+                            username: true,
+                            
+                            picColor: true,
+                            picUrl: true,
+                            email: true
+                        }
+                    },
+                    {$limit: 10}
+                ],
+
+            })
+
+            if (users.length) {
+                return {
+                    data: users
+                }
+            } else {
+                throw new NotFoundError("Пользователи не существуют")
+            }
+        } catch (error) {
+            console.log(error)
+
+            throw error
+        }
+
     }
 }

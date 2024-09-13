@@ -1,5 +1,5 @@
 import { JwtAccessGuard } from './../jwt/guards/access.guard';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JWTUserDto, LogInUserDto, SettingsUserDto, UserDto } from './dto/user.dto';
 import { Response } from 'express';
@@ -19,7 +19,6 @@ export class UserController {
     return await this.userService.createUser(dto, response);
   }
 
-
   @Post("login")
   async login(
     @Body() dto: LogInUserDto,
@@ -37,7 +36,6 @@ export class UserController {
     return await this.userService.refreshToken(user.sub, response);
   }
 
-
   @UseGuards(JwtAccessGuard)
   @Post("auth_me")
   async authMe(
@@ -47,7 +45,6 @@ export class UserController {
     return await this.userService.authMe(user.sub, response);
   }
 
-  
   @UseGuards(JwtAccessGuard)
   @Post("logout")
   async logOut(
@@ -56,7 +53,6 @@ export class UserController {
   ) {
     return await this.userService.logOut(user.sub, response);
   }
-
   
   @UseGuards(JwtAccessGuard)
   @Get(":id")
@@ -77,6 +73,14 @@ export class UserController {
   async removePicProfile(@GetUserJWTId() user: JWTUserDto) {
       return await this.userService.removeProfilePic(user.sub)
   }
-
+  
+  @UseGuards(JwtAccessGuard)
+  @Post("search")
+  async searchUsers(
+    @GetUserJWTId() user: JWTUserDto,
+    @Query("query") query: string) {
+      console.log("fff",  query)
+      return await this.userService.searchUsers(user.sub, query)
+  }
   
 }
