@@ -1,5 +1,5 @@
 import { JwtAccessGuard } from './../jwt/guards/access.guard';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JWTUserDto, LogInUserDto, SettingsUserDto, UserDto } from './dto/user.dto';
 import { Response } from 'express';
@@ -79,8 +79,13 @@ export class UserController {
   async searchUsers(
     @GetUserJWTId() user: JWTUserDto,
     @Query("query") query: string) {
+      if (!query.length) {
+        throw new ForbiddenException("Undefined request")
+      }
+
       console.log("fff",  query)
       return await this.userService.searchUsers(user.sub, query)
   }
+
   
 }

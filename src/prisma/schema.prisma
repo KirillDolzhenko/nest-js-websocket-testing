@@ -20,6 +20,6 @@ model User {
     password String
     email    String @unique
 
-    picUrl   String?
+    picUrl   String? @default("")
     picColor Color   @default(BLUE)
 }

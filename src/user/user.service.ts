@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { JWTUserDto, LogInUserDto, SettingsUserDto, UserDto } from './dto/user.dto';
 import * as bcrypt from "bcrypt";
@@ -109,7 +109,7 @@ export class UserService {
     
                return await this.jwtTokensAppend({user}, user.id, response)            
             } else {
-                return new ForbiddenException("Данные заняты")
+                throw new ForbiddenException("Данные заняты")
             }
         } catch (error) {
             throw error            
@@ -142,7 +142,6 @@ export class UserService {
             throw error            
         }
     }
-
     
     async logOut(id: string, response: Response) {
         try {
@@ -336,7 +335,7 @@ export class UserService {
                             email: true
                         }
                     },
-                    {$limit: 10}
+                    {$limit: 7}
                 ],
 
             })
@@ -345,8 +344,9 @@ export class UserService {
                 return {
                     data: users
                 }
-            } else {
-                throw new NotFoundError("Пользователи не существуют")
+            } 
+            else {
+                throw new NotFoundException("Users not found")
             }
         } catch (error) {
             console.log(error)
