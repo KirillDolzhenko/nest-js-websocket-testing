@@ -1,30 +1,54 @@
 import { Socket } from 'socket.io';
-import { MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { ClientRequest, Server } from 'http';
+import { DatabaseService } from 'src/database/database.service';
+import { UnauthorizedException, UseGuards } from '@nestjs/common';
+import { JwtAccessSocketGuard } from 'src/jwt/guards/access.guard';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { DirectChatService } from './services/direct.chat.service';
 
-@WebSocketGateway(3010, {
+const activeConnetctions = new Map<string, Socket>();
+
+@WebSocketGateway({
   cors: {
-    origin: "*"
-  }
+    origin: "*",
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['content-type'],
+    credentials: true}, 
 })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
+export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect{
+  
   @WebSocketServer() server: Server;
-
-  @SubscribeMessage("newMessage")
-  handleNewMessage(client: Socket, message: any) {
-    console.log(client)
-    console.log(message)
-
-    this.server.emit("message", message)
+  
+  constructor(
+    private readonly directChatService: DirectChatService
+  ) {}
+  
+  // @UseGuards(JwtAccessSocketGuard)
+  // @SubscribeMessage("signal")
+  // handleSignal(client: Socket, message: any) {
+  //   client.broadcast.emit("signal", `message: ${message}`)
+  // }
+  
+  @UseGuards(JwtAccessSocketGuard)
+  @SubscribeMessage("message")
+  handleMessage(@ConnectedSocket() client: Socket, @MessageBody() message: {
+    content: string,
+    recipient: string
+  }) {
+    this.directChatService.sendMessage(client, message)
+  }
+  
+  handleConnection(client: Socket) {
+    this.directChatService.connection(client)
+  }
+  
+  handleDisconnect(client: Socket) {
+    this.directChatService.disconnection(client)
   }
 
-  handleConnection(client: any, ...args: any[]) {
-    client.broadcast.emit("user-join", `User ${client.id} joined chatroom`)
+  afterInit(server: any) {
+    console.log('WebSocket Server Initialized');
   }
-
-  handleDisconnect(client: any) {
-    client.broadcast.emit("user-left", `User ${client.id} left chatroom`)
-  }
-
-
 }

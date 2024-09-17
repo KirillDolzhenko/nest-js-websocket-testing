@@ -9,11 +9,12 @@ import { JwtGlobalModule } from './jwt/jwt.module';
 import { FilesModule } from './files/files.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
+import { DirectChatService } from './chat/services/direct.chat.service';
 
 
 @Module({
   controllers: [AppController],
-  providers: [AppService, ChatGateway],
+  providers: [AppService, ChatGateway, DirectChatService],
   imports: [
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', "..", "uploads"),

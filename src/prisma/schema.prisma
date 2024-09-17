@@ -14,6 +14,16 @@ enum Color {
     YELLOW
 }
 
+enum MessageType {
+    DIRECT
+    GROUP
+}
+
+enum RecipientType {
+    DIRECT
+    GROUP
+}
+
 model User {
     id       String @id @default(auto()) @map("_id") @db.ObjectId
     username String
@@ -22,4 +32,23 @@ model User {
 
     picUrl   String? @default("")
     picColor Color   @default(BLUE)
+
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
+    MessagesSended  Message[] @relation("UserSended")
+    MessageRecipent Message[] @relation("UserRecipient")
+}
+
+model Message {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    messageType MessageType
+    content     String
+
+    sender   User   @relation("UserSended", fields: [senderId], references: [id])
+    senderId String @db.ObjectId
+
+    recipientType RecipientType
+    recipient     User?         @relation("UserRecipient", references: [id], fields: [recipientId])
+    recipientId   String?       @db.ObjectId
 }

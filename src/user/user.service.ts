@@ -43,6 +43,8 @@ export class UserService {
     async jwtRefreshToken (id: string) {
         let secret = this.config.get("jwt.secret.refresh");
 
+console.log("ID - ", id)
+
         return await this.jwt.signAsync({
             sub: id
         }, {
