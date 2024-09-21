@@ -30,17 +30,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   // handleSignal(client: Socket, message: any) {
   //   client.broadcast.emit("signal", `message: ${message}`)
   // }
-  
+
   @UseGuards(JwtAccessSocketGuard)
   @SubscribeMessage("message")
   handleMessage(@ConnectedSocket() client: Socket, @MessageBody() message: {
     content: string,
     recipient: string
   }) {
+    console.log(message)
     this.directChatService.sendMessage(client, message)
   }
   
   handleConnection(client: Socket) {
+    console.log("SOME")
     this.directChatService.connection(client)
   }
   
@@ -49,6 +51,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   afterInit(server: any) {
+    console.log("SOME")
     console.log('WebSocket Server Initialized');
   }
 }

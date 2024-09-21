@@ -4,6 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import { DatabaseService } from "src/database/database.service";
 import { Socket } from 'socket.io';
 import { MessageType, RecipientType } from "@prisma/client";
+import { chatUserSelect } from "../select/chat.select";
 
 const activeConnections = new Map<string, Socket>();
 
@@ -22,6 +23,8 @@ export class DirectChatService {
         let idSender = client.data.user.sub;
         let idRecipient = message.recipient;
 
+        // client.emit("error", "Something")
+
         try {
             let dbSender = await this.db.user.findUnique({
                 where: {
@@ -36,6 +39,12 @@ export class DirectChatService {
                     }
                 })
 
+                // try {
+
+                // } catch (e) {
+
+                // }
+
                 if (dbRecipient) {
                     let dbMessage = await this.db.message.create({
                         data: {
@@ -44,17 +53,31 @@ export class DirectChatService {
                             recipientId: idRecipient,
                             messageType: MessageType.DIRECT,
                             recipientType: RecipientType.DIRECT
+                        },
+                        include: {
+                          sender: {
+                            select: {
+                                ...chatUserSelect
+                            }
+                          },
+                          recipient: {
+                            select: {
+                                ...chatUserSelect
+                            }
+                          }
                         }
                     })
 
                     if (dbMessage) {
                         let recipientSocket = await activeConnections.get(idRecipient);
                         
+                      console.log(recipientSocket ? true : false)
+
                         if (recipientSocket) {
-                            recipientSocket.emit("message", `${message.content}; from: ${idRecipient}`);
-                            client.emit("message", `message: ${message.content}; to: ${idRecipient}; success`);
+                            recipientSocket.emit("message", dbMessage);
+                            client.emit("message", dbMessage);
                         } else {
-                            client.emit("message", `recipient ${idRecipient} is not connected ${message.content}`);  
+                            client.emit("message", dbMessage);  
                         }
                     } else {
                         client.emit("message", `Error occured during sending message`);  
@@ -66,14 +89,18 @@ export class DirectChatService {
                 }
             
             } else {
+                // client.emit("message", `Recipient doesn't exist!`);  
                 throw new ForbiddenException("You doesn't exist!");
             }
         } catch (error) {
+            client.emit("error", `Something goes wrong!`);  
             console.log(error)
             // throw error;
         }
 
     }
+
+    
 
     connection(client: Socket) {
         try {
@@ -101,7 +128,12 @@ export class DirectChatService {
         } catch (error) {
             console.log(error)
             
-            console.log('Invalid token');
+            client.emit("error", {
+              code: 3000,
+              id: "connection",
+              message: "Unauthorized"
+            })
+
             client.disconnect(); // Отключаем клиента при недействительном токене
         }
     }

@@ -10,6 +10,7 @@ import { FilesModule } from './files/files.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as path from 'path';
 import { DirectChatService } from './chat/services/direct.chat.service';
+import { ChatModule } from './chat/chat.module';
 
 
 @Module({
@@ -20,7 +21,7 @@ import { DirectChatService } from './chat/services/direct.chat.service';
       rootPath: path.join(__dirname, '..', "..", "uploads"),
       serveRoot: "/static"
     }),
-    DatabaseModule, UserModule, ConfigGlobalModule, JwtGlobalModule, FilesModule],
+    DatabaseModule, UserModule, ConfigGlobalModule, JwtGlobalModule, FilesModule, ChatModule],
 
 })
 export class AppModule {}
