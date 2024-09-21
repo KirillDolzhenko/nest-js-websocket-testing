@@ -49,7 +49,12 @@ export class ChatService {
                                   ...chatUserSelect
                               }
                             },
-                        }
+                        },
+                        orderBy: 
+                            {
+                                createdAt: "asc"
+                            }
+                        
                     })
 
                     if (messages) {
