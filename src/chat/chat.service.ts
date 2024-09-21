@@ -3,6 +3,7 @@ import { DatabaseService } from 'src/database/database.service';
 import { JWTUserDto } from 'src/user/dto/user.dto';
 import { GetMessagesDirectDto } from './dto/chat.dto';
 import { chatUserSelect } from './select/chat.select';
+import { ObjectId } from 'src/user/user.service';
 
 @Injectable()
 export class ChatService {
@@ -73,6 +74,99 @@ export class ChatService {
             }
         } catch (error) {
             throw error
+        }
+
+    }
+    
+    async getContactsDirect(user: JWTUserDto) {
+        try {
+            let userDB = await this.db.user.findUnique({
+                where: {
+                    id: user.sub
+                }
+            })
+
+
+            if (userDB) {
+                let contacts = await this.db.message.aggregateRaw({
+                    pipeline: [
+                        {
+                            $match: {
+                                $or: [{
+                                    senderId: {$eq: ObjectId(user.sub)}
+                                }, {
+                                    recipientId: {$eq: ObjectId(user.sub)}
+                                }]
+                            }
+                        },
+                        {
+                            $sort: {
+                                createdAt: -1
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: {
+                                    $cond: {
+                                        if: {
+                                            $eq: ["$senderId", ObjectId(user.sub)]
+                                        },
+                                        then: "$recipientId",
+                                        else: "$senderId"
+                                    }
+                                },
+                                lastMessage: {
+                                    $first: "$content"
+                                }
+                            }                            
+                        },
+                        {
+                            $lookup: {
+                                from: "User",
+                                localField: "_id",
+                                foreignField: "_id",
+                                as: "user"
+                            }
+                        },
+                        {
+                            $project: {
+                                lastMessage: "$lastMessage",
+                                user: { 
+                                    $arrayElemAt: ['$user',0]
+                                }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                lastMessage: "$lastMessage",
+                                user: {
+                                    id: {
+                                        $toString: "$user._id"
+                                    },
+                                    username: 1,
+                                    email: 1,
+                                    picUrl: 1,
+                                    picColor: 1
+                                }
+                            }
+                        }
+
+                    ]
+                }) 
+
+                if (contacts) {
+                    return {
+                        data: contacts
+                    }
+                } else {
+                    throw new ForbiddenException("There is no contacts"); 
+                }
+            } else {
+                throw new ForbiddenException("Your account didn't exist"); 
+            }
+        } catch (error) {
+            console.log(error)
         }
 
     }

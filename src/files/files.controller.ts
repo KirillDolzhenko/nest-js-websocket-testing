@@ -1,11 +1,14 @@
-import { Controller, Get, Post, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseFilePipe, Post, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
-import { extname } from 'path';
+import path, { extname } from 'path';
 import { ConfigGlobalModule } from 'src/config/config.module';
 import { ConfigService } from '@nestjs/config';
 import { JwtAccessGuard } from 'src/jwt/guards/access.guard';
+import { MessageFileValidationPipe, MessageImageValidationPipe } from './validator/file.validator';
+
+import * as fs from "fs";
 
 let storageImages = multer.diskStorage(
   { 
@@ -49,8 +52,6 @@ export class FilesController {
         cb(new UnsupportedMediaTypeException('Only image files are allowed'), false)
       }
     },
-
-
   }))
   uploadImage(@UploadedFile() file: Express.Multer.File) {
     console.log(file)
@@ -63,6 +64,19 @@ export class FilesController {
         }     
       }
     }
+  }
+
+  @Post("message/image")
+  @UseInterceptors(FileInterceptor("file"))
+  uploadMesImage(@UploadedFile(new MessageImageValidationPipe()) file: Express.Multer.File) {
+    return this.filesService.uploadMesImage(file)
+  }
+
+  @Post("message/file")
+  @UseInterceptors(FileInterceptor("file"))
+  uploadMesFile(@UploadedFile(new MessageFileValidationPipe()) file: Express.Multer.File) {
+    // return "FFFD"
+    return this.filesService.uploadMesFile(file)  
   }
   
 }
