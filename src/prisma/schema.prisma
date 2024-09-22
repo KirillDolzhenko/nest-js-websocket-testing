@@ -54,4 +54,6 @@ model Message {
     recipientType RecipientType
     recipient     User?         @relation("UserRecipient", references: [id], fields: [recipientId])
     recipientId   String?       @db.ObjectId
+
+    fileSize Int?
 }

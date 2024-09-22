@@ -7,6 +7,9 @@ import { MessageType, RecipientType } from "@prisma/client";
 import { chatUserSelect } from "../select/chat.select";
 import { SendMessageDto } from "../dto/chat.dto";
 
+import * as path from "path";
+import * as fs from "fs";
+
 const activeConnections = new Map<string, Socket>();
 
 @Injectable()
@@ -37,12 +40,6 @@ export class DirectChatService {
                     }
                 })
 
-                // try {
-
-                // } catch (e) {
-
-                // }
-
                 if (dbRecipient) {
                     let dbMessage = await this.db.message.create({
                         data: {
@@ -50,7 +47,8 @@ export class DirectChatService {
                             senderId: idSender,
                             recipientId: idRecipient,
                             messageType: message.messageType,
-                            recipientType: message.recipientType
+                            recipientType: message.recipientType,
+                            fileSize: message.messageType == MessageType.FILE ? await fs.statSync(path.join("uploads",...message.content.split("/").slice(-3))).size : undefined
                         },
                         include: {
                           sender: {
@@ -69,7 +67,7 @@ export class DirectChatService {
                     if (dbMessage) {
                         let recipientSocket = await activeConnections.get(idRecipient);
                         
-                      console.log(recipientSocket ? true : false)
+                        console.log(recipientSocket ? true : false)
 
                         if (recipientSocket) {
                             recipientSocket.emit("message", dbMessage);
