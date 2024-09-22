@@ -15,8 +15,8 @@ enum Color {
 }
 
 enum MessageType {
-    DIRECT
-    GROUP
+    FILE
+    TEXT
 }
 
 enum RecipientType {

@@ -22,6 +22,7 @@ export class FilesService {
                 file: {
                   path: `${pathCore}/${filename}`,
                   filename: filename,
+                  size: file.size
                 }     
               }
             } 
@@ -48,6 +49,7 @@ export class FilesService {
               file: {
                 path: `${pathCore}/${filename}`,
                 filename: filename,
+                size: file.size
               }     
             });
 

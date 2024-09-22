@@ -7,6 +7,7 @@ import { JwtAccessSocketGuard } from 'src/jwt/guards/access.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { DirectChatService } from './services/direct.chat.service';
+import { SendMessageDto } from './dto/chat.dto';
 
 const activeConnetctions = new Map<string, Socket>();
 
@@ -33,16 +34,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @UseGuards(JwtAccessSocketGuard)
   @SubscribeMessage("message")
-  handleMessage(@ConnectedSocket() client: Socket, @MessageBody() message: {
-    content: string,
-    recipient: string
-  }) {
-    console.log(message)
+  handleMessage(@ConnectedSocket() client: Socket, @MessageBody() message: SendMessageDto) {
     this.directChatService.sendMessage(client, message)
   }
   
   handleConnection(client: Socket) {
-    console.log("SOME")
     this.directChatService.connection(client)
   }
   
@@ -50,8 +46,5 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.directChatService.disconnection(client)
   }
 
-  afterInit(server: any) {
-    console.log("SOME")
-    console.log('WebSocket Server Initialized');
-  }
+  afterInit(server: any) {}
 }

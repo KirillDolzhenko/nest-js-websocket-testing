@@ -61,6 +61,7 @@ export class FilesController {
         file: {
           path: `http://localhost:${this.config.get("port")}/static/images/${file.filename}`,
           filename: file.filename,
+          size: file.size
         }     
       }
     }

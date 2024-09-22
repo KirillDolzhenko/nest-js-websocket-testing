@@ -5,6 +5,7 @@ import { DatabaseService } from "src/database/database.service";
 import { Socket } from 'socket.io';
 import { MessageType, RecipientType } from "@prisma/client";
 import { chatUserSelect } from "../select/chat.select";
+import { SendMessageDto } from "../dto/chat.dto";
 
 const activeConnections = new Map<string, Socket>();
 
@@ -16,10 +17,7 @@ export class DirectChatService {
         private readonly config: ConfigService
     ) {}
 
-    async sendMessage(client: Socket, message: {
-        content: string,
-        recipient: string
-    }) {
+    async sendMessage(client: Socket, message: SendMessageDto) {
         let idSender = client.data.user.sub;
         let idRecipient = message.recipient;
 
@@ -51,8 +49,8 @@ export class DirectChatService {
                             content: message.content,
                             senderId: idSender,
                             recipientId: idRecipient,
-                            messageType: MessageType.DIRECT,
-                            recipientType: RecipientType.DIRECT
+                            messageType: message.messageType,
+                            recipientType: message.recipientType
                         },
                         include: {
                           sender: {
