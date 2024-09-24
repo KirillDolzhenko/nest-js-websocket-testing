@@ -7,9 +7,19 @@ export class FilesService {
     constructor(private readonly config: ConfigService) {
     }
 
-    uploadMesImage(file: Express.Multer.File) { 
+    async uploadMesImage(file: Express.Multer.File) { 
         try {
-            let filename = `file_${(new Date).getTime()}_${file.originalname}`.split(" ").join("_");
+            let filename = await `file_${(new Date).getTime()}_${file.originalname}`
+            .split(" ")
+            .join("_")
+            .split("/")
+            .join("_")
+            .split("\\")
+            .join("_")
+            .split("#")
+            .join("_");
+console.log(filename)
+
             let dir = "uploads/messages/images";
             let pathCore = `http://localhost:${this.config.get("port")}/static/messages/images`
         
@@ -35,7 +45,16 @@ export class FilesService {
 
     uploadMesFile(file: Express.Multer.File) {
         try {
-          let filename = `file_${(new Date).getTime()}_${file.originalname}`.split(" ").join("_");
+          let filename = `file_${(new Date).getTime()}_${file.originalname}`
+            .split(" ")
+            .join("_")
+            .split("/")
+            .join("_")
+            .split("\\")
+            .join("_")
+            .split("#")
+            .join("_");
+            
           let dir = "uploads/messages/files";
           let pathCore = `http://localhost:${this.config.get("port")}/static/messages/files`
 

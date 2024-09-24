@@ -67,16 +67,15 @@ export class FilesController {
     }
   }
 
-  @Post("message/image")
-  @UseInterceptors(FileInterceptor("file"))
-  uploadMesImage(@UploadedFile(new MessageImageValidationPipe()) file: Express.Multer.File) {
-    return this.filesService.uploadMesImage(file)
-  }
+  // @Post("message/image")
+  // @UseInterceptors(FileInterceptor("file"))
+  // uploadMesImage(@UploadedFile(new MessageImageValidationPipe()) file: Express.Multer.File) {
+  //   return this.filesService.uploadMesImage(file)
+  // }
 
   @Post("message/file")
   @UseInterceptors(FileInterceptor("file"))
   uploadMesFile(@UploadedFile(new MessageFileValidationPipe()) file: Express.Multer.File) {
-    // return "FFFD"
     return this.filesService.uploadMesFile(file)  
   }
   
