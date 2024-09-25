@@ -1,5 +1,5 @@
 import { Color, Prisma } from "@prisma/client";
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, Max, Min } from "class-validator";
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, Max, MaxLength, Min, MinLength } from "class-validator";
 
 export class UserDto {
     @IsString()
@@ -8,8 +8,8 @@ export class UserDto {
 
     @IsString()
     @IsNotEmpty()
-    @Min(7)
-    @Max(50)
+    @MinLength(7)
+    @MaxLength(50)
     password: string;
 
     @IsString()
@@ -29,8 +29,8 @@ export class UserDto {
 export class LogInUserDto {
     @IsString()
     @IsNotEmpty()
-    @Min(7)
-    @Max(50)
+    @MinLength(7)
+    @MaxLength(50)
     password: string;
 
     @IsString()
@@ -62,3 +62,8 @@ export class SettingsUserDto {
     // picColor?: Color;
 }
 
+export class AllUsersDto {
+    @IsArray()
+    @IsOptional()
+    arrId: string[]
+}

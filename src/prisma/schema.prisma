@@ -35,8 +35,13 @@ model User {
 
     createdAt       DateTime  @default(now())
     updatedAt       DateTime  @updatedAt
-    MessagesSended  Message[] @relation("UserSended")
-    MessageRecipent Message[] @relation("UserRecipient")
+    messagesSended  Message[] @relation("UserSended")
+    messageRecipent Message[] @relation("UserRecipient")
+
+    channelAdmin Group[] @relation("UserAdmin")
+
+    channelMember   Group[]  @relation("UserMembers", fields: [channelMemberId], references: [id])
+    channelMemberId String[] @db.ObjectId
 }
 
 model Message {
@@ -52,8 +57,30 @@ model Message {
     senderId String @db.ObjectId
 
     recipientType RecipientType
-    recipient     User?         @relation("UserRecipient", references: [id], fields: [recipientId])
-    recipientId   String?       @db.ObjectId
+
+    recipientGroup   Group?  @relation("GroupRecipient", references: [id], fields: [recipientGroupId])
+    recipientGroupId String? @db.ObjectId
+
+    recipient   User?   @relation("UserRecipient", references: [id], fields: [recipientId])
+    recipientId String? @db.ObjectId
 
     fileSize Int?
+}
+
+model Group {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    title      String
+    desciption String?
+
+    admin   User   @relation("UserAdmin", references: [id], fields: [adminId])
+    adminId String @db.ObjectId
+
+    members   User[]   @relation("UserMembers", fields: [membersId], references: [id])
+    membersId String[] @db.ObjectId
+
+    messages Message[] @relation("GroupRecipient")
 }

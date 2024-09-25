@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { NotFoundError } from 'rxjs';
 
-let selectUser = {
+export let selectUser = {
     id: true,
     username: true,
     email: true,
@@ -43,7 +43,7 @@ export class UserService {
     async jwtRefreshToken (id: string) {
         let secret = this.config.get("jwt.secret.refresh");
 
-console.log("ID - ", id)
+        console.log("ID - ", id)
 
         return await this.jwt.signAsync({
             sub: id
@@ -354,6 +354,55 @@ console.log("ID - ", id)
             console.log(error)
 
             throw error
+        }
+
+    }
+
+    async getAllUsers(userId: string, selectedId: string[]) {
+        console.log(5555, selectedId)
+        try {
+            let user = this.db.user.findUnique({
+                where: {
+                    id: userId
+                }
+            })
+
+            if (!selectedId) {
+                selectedId = []
+            }
+
+            if (user) {
+                let users = await this.db.user.findMany(
+                    {
+                        where: {
+                            id: {
+                                notIn: [...selectedId, userId]
+                            }
+                        },
+                        select: {
+                            ...selectUser
+                        }
+                    }
+                )
+
+                // console.log(users)
+
+                if (users) {
+                    return {
+                        data: users
+                    }
+                } else {
+                    throw new ForbiddenException("Error occured");
+                }
+            } else {
+                throw new ForbiddenException("Your account didn't exist")
+            }
+        } catch (error) {
+            console.log(error)
+            
+            throw error
+
+            // return error
         }
 
     }

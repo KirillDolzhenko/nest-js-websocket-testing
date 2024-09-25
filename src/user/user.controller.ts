@@ -1,7 +1,7 @@
 import { JwtAccessGuard } from './../jwt/guards/access.guard';
 import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JWTUserDto, LogInUserDto, SettingsUserDto, UserDto } from './dto/user.dto';
+import { AllUsersDto, JWTUserDto, LogInUserDto, SettingsUserDto, UserDto } from './dto/user.dto';
 import { Response } from 'express';
 import { JwtRefreshGuard } from 'src/jwt/guards/refresh.guard';
 import { GetUserJWTId } from './decorators/GetUserJWTId.decorator';
@@ -27,8 +27,8 @@ export class UserController {
     return await this.userService.logIn(dto, response);
   }
 
-  @UseGuards(JwtRefreshGuard)
   @Get("refresh_token")
+  @UseGuards(JwtRefreshGuard)
   async refreshToken(
     @GetUserJWTId() user: JWTUserDto,
     @Res({ passthrough: true }) response: Response
@@ -36,8 +36,8 @@ export class UserController {
     return await this.userService.refreshToken(user.sub, response);
   }
 
-  @UseGuards(JwtAccessGuard)
   @Post("auth_me")
+  @UseGuards(JwtAccessGuard)
   async authMe(
     @GetUserJWTId() user: JWTUserDto,
     @Res({ passthrough: true }) response: Response
@@ -45,8 +45,8 @@ export class UserController {
     return await this.userService.authMe(user.sub, response);
   }
 
-  @UseGuards(JwtAccessGuard)
   @Post("logout")
+  @UseGuards(JwtAccessGuard)
   async logOut(
     @GetUserJWTId() user: JWTUserDto,
     @Res({ passthrough: true }) response: Response
@@ -54,31 +54,32 @@ export class UserController {
     return await this.userService.logOut(user.sub, response);
   }
   
-  @UseGuards(JwtAccessGuard)
   @Get(":id")
+  @UseGuards(JwtAccessGuard)
   async getUser(@Param("id") id: string) {
     return await this.userService.getUser(id);
   }
 
-  @UseGuards(JwtAccessGuard)
   @Patch()
+  @UseGuards(JwtAccessGuard)
   async updateUser(
     @GetUserJWTId() user: JWTUserDto,
     @Body() dto: SettingsUserDto) {
       return await this.userService.patchInfo(dto, user.sub)
   }
   
-  @UseGuards(JwtAccessGuard)
   @Delete("pic_profile")
+  @UseGuards(JwtAccessGuard)
   async removePicProfile(@GetUserJWTId() user: JWTUserDto) {
       return await this.userService.removeProfilePic(user.sub)
   }
   
-  @UseGuards(JwtAccessGuard)
   @Post("search")
+  @UseGuards(JwtAccessGuard)
   async searchUsers(
     @GetUserJWTId() user: JWTUserDto,
-    @Query("query") query: string) {
+    @Query("query") query: string
+  ) {
       if (!query.length) {
         throw new ForbiddenException("Undefined request")
       }
@@ -87,5 +88,14 @@ export class UserController {
       return await this.userService.searchUsers(user.sub, query)
   }
 
-  
+
+  @Post("/contacts/all")
+  @UseGuards(JwtAccessGuard)
+  async getAllUsers(
+    @GetUserJWTId() user: JWTUserDto,
+    @Body() dto: AllUsersDto,
+  ) {
+    console.log(dto)
+    return await this.userService.getAllUsers(user.sub, dto.arrId);
+  }
 }
