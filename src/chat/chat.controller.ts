@@ -20,7 +20,7 @@ export class ChatController {
     return await this.chatService.getMessagesDirect(user, dto)
   }
 
-  @Post("/contacts/direct")
+  @Get("/contacts/direct")
   @UseGuards(JwtAccessGuard)
   async getContactsDirect(@GetUserJWTId() user: JWTUserDto) {
 

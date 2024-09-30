@@ -1,5 +1,5 @@
 import { MessageType, RecipientType } from '@prisma/client';
-import { IsEnum, IsMongoId, IsString } from "class-validator";
+import { IsEnum, IsMongoId, IsOptional, IsString } from "class-validator";
 
 export class GetMessagesDirectDto {
     @IsString()

@@ -4,6 +4,7 @@ import { JwtService } from "@nestjs/jwt";
 import { AuthGuard } from "@nestjs/passport";
 import { Observable } from "rxjs";
 import { Socket } from "socket.io";
+import sendError from "src/chat/functions/chat.functions";
 
 export class JwtAccessGuard extends AuthGuard("jwt-access") {}
 
@@ -15,8 +16,9 @@ export class JwtAccessSocketGuard implements CanActivate {
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> {
         const client: Socket = context.switchToWs().getClient<Socket>();
+        const data: any = context.switchToWs().getData();
 
-        let token = client.handshake.headers?.auth || client.handshake.auth?.token;
+        let token = data.auth.token;
 
         try {
             const payload = this.jwt.verify(token, {
@@ -25,6 +27,7 @@ export class JwtAccessSocketGuard implements CanActivate {
 
             return true;
         } catch (e) {
+            sendError(client, "Invalid token", data);
             throw new UnauthorizedException('Invalid token');
         }
     }

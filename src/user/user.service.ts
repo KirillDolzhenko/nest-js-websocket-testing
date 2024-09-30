@@ -36,7 +36,7 @@ export class UserService {
             sub: id
         }, {
             secret,
-            expiresIn: "10min"
+            expiresIn: "30min"
         })
     }
 

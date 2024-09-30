@@ -1,9 +1,9 @@
 import { Color, Prisma } from "@prisma/client";
-import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, Max, MaxLength, Min, MinLength } from "class-validator";
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, isURL, IsUrl, Max, MaxLength, Min, MinLength, ValidateIf } from "class-validator";
 
 export class UserDto {
     @IsString()
-    @Min(1)
+    @MinLength(1)
     username: string;
 
     @IsString()
@@ -45,7 +45,7 @@ export class JWTUserDto {
 
 export class SettingsUserDto {
     @IsString()
-    @Min(1)
+    @MinLength(1)
     username: string;
 
     @IsString()
@@ -53,13 +53,21 @@ export class SettingsUserDto {
     email: string;
 
     @IsOptional()
+    @ValidateIf(value => {
+        return Boolean(value.picUrl)
+    })
     @IsString()
-    @IsUrl()
+    @IsUrl({
+        require_protocol: false,
+        allow_protocol_relative_urls: false,
+        allow_underscores: true, 
+        require_tld: false
+    })
     picUrl?: string;
 
-    // @IsOptional()
-    // @IsEnum(Color)
-    // picColor?: Color;
+    @IsOptional()
+    @IsEnum(Color)
+    picColor?: Color;
 }
 
 export class AllUsersDto {

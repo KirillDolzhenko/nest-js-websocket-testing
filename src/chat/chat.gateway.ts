@@ -27,7 +27,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   ) {}
   
   // @UseGuards(JwtAccessSocketGuard)
-  // @SubscribeMessage("signal")
+  // @SubscribeMessage("message_group")
   // handleSignal(client: Socket, message: any) {
   //   client.broadcast.emit("signal", `message: ${message}`)
   // }

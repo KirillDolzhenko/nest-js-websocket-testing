@@ -57,6 +57,7 @@ export class UserController {
   @Get(":id")
   @UseGuards(JwtAccessGuard)
   async getUser(@Param("id") id: string) {
+    // console.log('fddffd')
     return await this.userService.getUser(id);
   }
 
@@ -64,7 +65,9 @@ export class UserController {
   @UseGuards(JwtAccessGuard)
   async updateUser(
     @GetUserJWTId() user: JWTUserDto,
-    @Body() dto: SettingsUserDto) {
+    @Body() dto: SettingsUserDto
+  ) {
+      console.log(dto)
       return await this.userService.patchInfo(dto, user.sub)
   }
   

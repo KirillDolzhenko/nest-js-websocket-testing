@@ -4,11 +4,12 @@ import { JwtService } from "@nestjs/jwt";
 import { DatabaseService } from "src/database/database.service";
 import { Socket } from 'socket.io';
 import { MessageType, RecipientType } from "@prisma/client";
-import { chatUserSelect } from "../select/chat.select";
+import { chatGroupSelect, chatUserSelect } from "../select/chat.select";
 import { SendMessageDto } from "../dto/chat.dto";
 
 import * as path from "path";
 import * as fs from "fs";
+import sendError from "../functions/chat.functions";
 
 const activeConnections = new Map<string, Socket>();
 
@@ -20,11 +21,16 @@ export class DirectChatService {
         private readonly config: ConfigService
     ) {}
 
+    // async sendError(client: Socket, message: string) {
+    //     client.emit("Error", {
+    //         type: "message",
+    //         message
+    //     }); 
+    // }
+
     async sendMessage(client: Socket, message: SendMessageDto) {
         let idSender = client.data.user.sub;
         let idRecipient = message.recipient;
-
-        // client.emit("error", "Something")
 
         try {
             let dbSender = await this.db.user.findUnique({
@@ -34,9 +40,17 @@ export class DirectChatService {
             })
 
             if (dbSender) {
-                let dbRecipient = await this.db.user.findUnique({
+                let dbRecipient = message.recipientType == RecipientType.DIRECT ? await this.db.user.findUnique({
                     where: {
                         id: idRecipient
+                    }
+                }) : await this.db.group.findUnique({
+                    where: {
+                        id: message.recipient
+                    },
+                    select: {
+                        membersId: true,
+                        adminId: true
                     }
                 })
 
@@ -45,10 +59,11 @@ export class DirectChatService {
                         data: {
                             content: message.content,
                             senderId: idSender,
-                            recipientId: idRecipient,
+                            recipientId: message.recipientType == RecipientType.DIRECT ? idRecipient : undefined,
                             messageType: message.messageType,
                             recipientType: message.recipientType,
-                            fileSize: message.messageType == MessageType.FILE ? await fs.statSync(path.join("uploads",...message.content.split("/").slice(-3))).size : undefined
+                            fileSize: message.messageType == MessageType.FILE ? await fs.statSync(path.join("uploads",...message.content.split("/").slice(-3))).size : undefined,
+                            recipientGroupId: message.recipientType == RecipientType.GROUP ? idRecipient : undefined,
                         },
                         include: {
                           sender: {
@@ -58,54 +73,82 @@ export class DirectChatService {
                           },
                           recipient: {
                             select: {
-                                ...chatUserSelect
+                                ...chatUserSelect,
+                            }
+                          },
+                          recipientGroup: {
+                            select: {
+                                ...chatGroupSelect,
                             }
                           }
                         }
                     })
 
                     if (dbMessage) {
-                        let recipientSocket = await activeConnections.get(idRecipient);
-                        
-                        console.log(recipientSocket ? true : false)
+                        if (dbMessage.recipientType == RecipientType.DIRECT) {
+                            if (idSender !== dbMessage.recipientId) {
+                                let recipientSocket = await activeConnections.get(idRecipient);
 
-                        if (recipientSocket) {
-                            recipientSocket.emit("message", dbMessage);
+                                if (recipientSocket) {
+                                    recipientSocket.emit("message", dbMessage);
+                                }
+                            }
+
+                            console.log(dbMessage)
+
+                            client.emit("message", dbMessage); 
+                        } else if (dbMessage.recipientType == RecipientType.GROUP) {
+                            
+                            let group = dbRecipient as {
+                                membersId: string[],
+                                adminId: string
+                            }
+
+                            for (let i = 0; i < group.membersId.length; i++) {
+                                if (group.membersId[i] !== idSender) {
+                                    let recipientSocket = await activeConnections.get(group.membersId[i]);
+                                    
+                                    if (recipientSocket) {
+                                        recipientSocket.emit("message", dbMessage);
+                                    }   
+                                }
+                            }
+
                             client.emit("message", dbMessage);
-                        } else {
-                            client.emit("message", dbMessage);  
+                            
+                            if (group.adminId !== idSender) {
+                                let recipientSocket = await activeConnections.get(group.adminId);
+                                
+                                if (recipientSocket) {
+                                    recipientSocket.emit("message", dbMessage);
+                                }
+                            }
                         }
                     } else {
-                        client.emit("message", `Error occured during sending message`);  
+                        sendError(client, `Error occured during sending message`);  
                     }
 
                 } else {
-                    client.emit("message", `Recipient doesn't exist!`);  
+                    sendError(client, `Recipient doesn't exist!`);  
                     throw new ForbiddenException("Recipient doesn't exist!");
                 }
             
             } else {
-                // client.emit("message", `Recipient doesn't exist!`);  
-                throw new ForbiddenException("You doesn't exist!");
+                sendError(client, `You doesn't exist!`);
             }
         } catch (error) {
-            client.emit("error", `Something goes wrong!`);  
-            console.log(error)
-            // throw error;
+            sendError(client, `Something goes wrong!`);
         }
-
     }
-
-    
 
     connection(client: Socket) {
         try {
             const token = client.handshake.headers?.auth || client.handshake.auth?.token; // Получаем токен при подключении
-            console.log("token", token)
             
             if (!token) {
-              client.disconnect();
-              throw new UnauthorizedException("No token provided");
+                console.log("There is no token")
+                sendError(client, `There is no token`);
+                client.disconnect();
             }
             
             const payload = this.jwt.verify(token, {
@@ -113,9 +156,7 @@ export class DirectChatService {
             }
           );
           client.data.user = payload; 
-      
-          console.log(payload)
-      
+
           activeConnections.set(payload.sub as string, client);
           
           console.log(`User ${client.id} joined chatroom`)
@@ -124,11 +165,7 @@ export class DirectChatService {
         } catch (error) {
             console.log(error)
             
-            client.emit("error", {
-              code: 3000,
-              id: "connection",
-              message: "Unauthorized"
-            })
+            sendError(client, `Unauthorized`);
 
             client.disconnect(); // Отключаем клиента при недействительном токене
         }

@@ -1,3 +1,4 @@
+import { RecipientType } from '@prisma/client';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { JWTUserDto } from 'src/user/dto/user.dto';
@@ -92,6 +93,7 @@ export class ChatService {
                     pipeline: [
                         {
                             $match: {
+                                recipientType: RecipientType.DIRECT,
                                 $or: [{
                                     senderId: {$eq: ObjectId(user.sub)}
                                 }, {
@@ -116,9 +118,21 @@ export class ChatService {
                                     }
                                 },
                                 lastMessage: {
-                                    $first: "$content"
+                                    // content: {
+                                        $first: "$content"
+                                    // },
+                                    // createdAt: {
+                                    // }
+                                },
+                                createdAt: {
+                                    $first: "$createdAt"
                                 }
                             }                            
+                        },
+                        {
+                            $sort: {
+                                createdAt: -1
+                            }
                         },
                         {
                             $lookup: {
@@ -155,6 +169,8 @@ export class ChatService {
                     ]
                 }) 
 
+                console.log(contacts)
+
                 if (contacts) {
                     return {
                         data: contacts
@@ -168,7 +184,6 @@ export class ChatService {
         } catch (error) {
             console.log(error)
         }
-
     }
 
 }

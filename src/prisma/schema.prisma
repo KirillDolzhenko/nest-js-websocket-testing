@@ -38,10 +38,10 @@ model User {
     messagesSended  Message[] @relation("UserSended")
     messageRecipent Message[] @relation("UserRecipient")
 
-    channelAdmin Group[] @relation("UserAdmin")
+    groupAdmin Group[] @relation("UserAdmin")
 
-    channelMember   Group[]  @relation("UserMembers", fields: [channelMemberId], references: [id])
-    channelMemberId String[] @db.ObjectId
+    groupMember   Group[]  @relation("UserMembers", fields: [groupMemberId], references: [id])
+    groupMemberId String[] @db.ObjectId
 }
 
 model Message {
