@@ -139,7 +139,7 @@ export class UserService {
             } 
 
 
-            throw new ForbiddenException("Неверные данные")
+            throw new ForbiddenException("Invalid data")
         } catch (error) {
             throw error            
         }
@@ -163,7 +163,7 @@ export class UserService {
                 };          
             } 
 
-            throw new ForbiddenException("Неверные данные")
+            throw new ForbiddenException("Invalid data")
         } catch (error) {
             throw error            
         }

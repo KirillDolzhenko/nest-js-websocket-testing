@@ -1,14 +1,11 @@
-import { Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseFilePipe, Post, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, UnsupportedMediaTypeException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as multer from 'multer';
-import path, { extname } from 'path';
-import { ConfigGlobalModule } from 'src/config/config.module';
+import { extname } from 'path';
 import { ConfigService } from '@nestjs/config';
 import { JwtAccessGuard } from 'src/jwt/guards/access.guard';
 import { MessageFileValidationPipe, MessageImageValidationPipe } from './validator/file.validator';
-
-import * as fs from "fs";
 
 let storageImages = multer.diskStorage(
   { 
@@ -31,9 +28,7 @@ export class FilesController {
   constructor(
     private readonly filesService: FilesService,
     private readonly config: ConfigService
-  ) {
-  }
-
+  ) {}
   
   @Post("images")
   @UseGuards(JwtAccessGuard)
@@ -54,12 +49,10 @@ export class FilesController {
     },
   }))
   uploadImage(@UploadedFile() file: Express.Multer.File) {
-    console.log(file)
-
     return {
       data: {
         file: {
-          path: `http://localhost:${this.config.get("port")}/static/images/${file.filename}`,
+          path: `http://${this.config.get("ip")}:${this.config.get("port")}/static/images/${file.filename}`,
           filename: file.filename,
           size: file.size
         }     
@@ -67,16 +60,9 @@ export class FilesController {
     }
   }
 
-  // @Post("message/image")
-  // @UseInterceptors(FileInterceptor("file"))
-  // uploadMesImage(@UploadedFile(new MessageImageValidationPipe()) file: Express.Multer.File) {
-  //   return this.filesService.uploadMesImage(file)
-  // }
-
   @Post("message/file")
   @UseInterceptors(FileInterceptor("file"))
   uploadMesFile(@UploadedFile(new MessageFileValidationPipe()) file: Express.Multer.File) {
     return this.filesService.uploadMesFile(file)  
   }
-  
 }

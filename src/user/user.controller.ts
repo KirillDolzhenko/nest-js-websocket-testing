@@ -36,7 +36,7 @@ export class UserController {
     return await this.userService.refreshToken(user.sub, response);
   }
 
-  @Post("auth_me")
+  @Get("auth_me")
   @UseGuards(JwtAccessGuard)
   async authMe(
     @GetUserJWTId() user: JWTUserDto,

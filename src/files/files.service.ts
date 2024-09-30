@@ -7,9 +7,8 @@ export class FilesService {
     constructor(private readonly config: ConfigService) {
     }
 
-    async uploadMesImage(file: Express.Multer.File) { 
-        try {
-            let filename = await `file_${(new Date).getTime()}_${file.originalname}`
+    convertName(filename: string) {
+      return `file_${(new Date).getTime()}_${filename}`
             .split(" ")
             .join("_")
             .split("/")
@@ -17,11 +16,15 @@ export class FilesService {
             .split("\\")
             .join("_")
             .split("#")
-            .join("_");
-console.log(filename)
+            .join("_")
+    }
+
+    async uploadMesImage(file: Express.Multer.File) { 
+        try {
+            let filename = this.convertName(file.originalname);
 
             let dir = "uploads/messages/images";
-            let pathCore = `http://localhost:${this.config.get("port")}/static/messages/images`
+            let pathCore = `http://${this.config.get("ip")}:${this.config.get("port")}/static/messages/images`
         
             fs.mkdirSync(dir, {recursive: true});
         
@@ -45,19 +48,10 @@ console.log(filename)
 
     uploadMesFile(file: Express.Multer.File) {
         try {
-          let filename = `file_${(new Date).getTime()}_${file.originalname}`
-            .split(" ")
-            .join("_")
-            .split("/")
-            .join("_")
-            .split("\\")
-            .join("_")
-            .split("#")
-            .join("_");
+          let filename =  this.convertName(file.originalname);
             
           let dir = "uploads/messages/files";
-          let pathCore = `http://localhost:${this.config.get("port")}/static/messages/files`
-
+          let pathCore = `http://${this.config.get("ip")}:${this.config.get("port")}/static/messages/files`
 
           fs.mkdirSync(dir, {recursive: true});
 
