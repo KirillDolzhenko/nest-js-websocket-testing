@@ -12,6 +12,7 @@ async function bootstrap() {
   app.use(cookieParser());
   
   app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix("api/firechat");
   
   const config = app.get(ConfigService);
 
@@ -19,6 +20,16 @@ async function bootstrap() {
     credentials: true,
     origin: config.get("corsUrl")
   });
+
+  // app.use((req, res, next) => {
+  //   console.log(req)
+  //   // if (req.path.startsWith('/firechat')) {
+      
+  //   //   next(); // Если да, то пропускаем дальше
+  //   // } else {
+  //   //   res.status(403).send('Access denied'); 
+  //   // }
+  // });
 
   await app.listen(config.get("port") || 9000);
 }
