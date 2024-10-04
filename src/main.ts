@@ -18,7 +18,14 @@ async function bootstrap() {
 
   app.enableCors({
     credentials: true,
-    origin: config.get("corsUrl")
+    origin: (origin, cb) => {
+      console.log("Origin", origin);
+
+      if (!origin || origin.startsWith(config.get("corsUrl"))) {
+        console.log("Trueee")
+        cb(null, true)
+      }
+    }
   });
 
   // app.use((req, res, next) => {
@@ -31,7 +38,9 @@ async function bootstrap() {
   //   // }
   // });
 
-  await app.listen(config.get("port") || 9000);
+  await app.listen(config.get("port") || 9000, config.get("ip"));
+
+  console.log(await app.getUrl())
 }
 
 bootstrap();
